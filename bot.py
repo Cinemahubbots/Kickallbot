@@ -3,10 +3,11 @@ from telethon import TelegramClient, errors
 # Replace these with your API credentials and bot token
 api_id = '22359038'
 api_hash = 'b3901895dc193c30c808ba4f1b550ed0'
-bot_token = '5685807128:AAFoTlc7eVbyQFyRRuZ_PpXF8Kmiz9weB8U'
-
+bot_token = '6405574355:AAESGO5kXViYoDLC6rgaITEFJOzacsuwJM0'
 # Replace this with your private channel invite link or ID
-private_channel_invite = 'https://t.me/+YgHaqBswB6JmNjA1'
+async def get_channel_id():
+    channel = await client.get_entity("https://t.me/+uVNNnsoim7RiNjNl")
+    print(f"Channel ID: {channel.id}")
 
 # Initialize the Telegram client
 client = TelegramClient('bot_session', api_id, api_hash).start(bot_token=bot_token)
