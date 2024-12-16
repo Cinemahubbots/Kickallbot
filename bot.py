@@ -1,39 +1,35 @@
-from telethon import TelegramClient, errors
+from pyrogram import Client
+from pyrogram.errors import FloodWait
+import time
 
-# Replace these with your API credentials and bot token
-api_id = '22359038'
-api_hash = 'b3901895dc193c30c808ba4f1b550ed0'
-bot_token = '6405574355:AAESGO5kXViYoDLC6rgaITEFJOzacsuwJM0'
-# Replace this with your private channel invite link or ID
-async def get_channel_id():
-    channel = await client.get_entity("https://t.me/+uVNNnsoim7RiNjNl")
-    print(f"Channel ID: {channel.id}")
+# Replace these with your own API details
+API_ID = "your_api_id"
+API_HASH = "your_api_hash"
+SESSION_NAME = "my_userbot"  # Can be any session name
 
-# Initialize the Telegram client
-client = TelegramClient('bot_session', api_id, api_hash).start(bot_token=bot_token)
+# Initialize the Pyrogram client
+app = Client(SESSION_NAME, api_id=API_ID, api_hash=API_HASH)
 
-async def kick_all_members(channel_link):
-    try:
-        # Resolve the private channel entity
-        channel = await client.get_entity(channel_link)
-        
-        # Iterate over all participants in the channel
-        async for user in client.iter_participants(channel):
-            if user.bot:  # Skip kicking other bots
-                continue
+async def kick_all_members(channel_username):
+    async with app:
+        async for member in app.get_chat_members(channel_username):
             try:
-                print(f"Kicking user: {user.id}")
-                await client.kick_participant(channel, user.id)  # Remove the user
-            except errors.UserAdminInvalidError:
-                print(f"Cannot kick admin: {user.id}")
+                # Skip if the member is an admin or the creator
+                if member.status in ["administrator", "creator"]:
+                    print(f"Skipping admin: {member.user.first_name}")
+                    continue
+
+                # Kick the member
+                await app.kick_chat_member(channel_username, member.user.id)
+                print(f"Kicked: {member.user.first_name} (ID: {member.user.id})")
+                time.sleep(1)  # Respect rate limits
+
+            except FloodWait as e:
+                print(f"FloodWait: Sleeping for {e.value} seconds")
+                time.sleep(e.value)
             except Exception as e:
-                print(f"Error kicking user {user.id}: {e}")
-    except Exception as e:
-        print(f"Error accessing the channel: {e}")
+                print(f"Error: {e}")
 
-async def main():
-    await kick_all_members(private_channel_invite)
-
-# Run the script
-with client:
-    client.loop.run_until_complete(main())
+if __name__ == "__main__":
+    target_channel = input("Enter the username or ID of the channel: ")
+    app.run(kick_all_members(target_channel))
